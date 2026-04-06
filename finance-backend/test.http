@@ -1,0 +1,25 @@
+### Create a New Record (Admin)
+POST http://localhost:3000/api/records
+Content-Type: application/json
+x-user-role: ADMIN
+
+{
+  "amount": 2500,
+  "type": "income",
+  "category": "Freelance",
+  "date": "2023-10-27",
+  "description": "Website Design"
+}
+
+### Get Dashboard Summary (Analyst)
+GET http://localhost:3000/api/summary
+x-user-role: ANALYST
+
+### Try to Create as Viewer (Should Fail with 403)
+POST http://localhost:3000/api/records
+Content-Type: application/json
+x-user-role: VIEWER
+
+{
+  "amount": 10
+}
