@@ -1,11 +1,15 @@
 // app.js
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const financeRoutes = require('./src/routes/financeRoutes');
 const { connectDB } = require('./src/config/database');
 
 const app = express();
 app.use(express.json());
+
+// Static test UI
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api', financeRoutes);

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zorvyn API Tester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.8);
+      --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.3);
+      --border-subtle: 1px solid rgba(148, 163, 184, 0.18);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1d283a 0, #050816 45%, #020617 100%);
+      color: var(--text);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.18) 0, rgba(15, 23, 42, 0.9) 38%, rgba(15, 23, 42, 0.98) 100%);
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: var(--shadow-soft);
+      padding: 20px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.06), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(129, 140, 248, 0.08), transparent 55%),
+        radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.04), transparent 55%);
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .shell-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+    }
+    .window-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f87171;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.7);
+    }
+    .dot:nth-child(2) {
+      background: #facc15;
+    }
+    .dot:nth-child(3) {
+      background: #34d399;
+    }
+    .title {
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-accent {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #bfdbfe;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.06));
+      border: 1px solid rgba(129, 140, 248, 0.5);
+      box-shadow: var(--shadow-glow);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
+      gap: 16px;
+    }
+    @media (max-width: 840px) {
+      .shell {
+        padding: 18px 14px 16px;
+      }
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .card {
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.56), rgba(15, 23, 42, 0.98));
+      border-radius: var(--radius-lg);
+      padding: 16px 15px 14px;
+      border: var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #e5edff;
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: #c4d4ff;
+      opacity: 0.9;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #d1d5db;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(6px);
+      white-space: nowrap;
+    }
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #cbd5f5;
+    }
+    input,
+    select,
+    textarea {
+      font: inherit;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.92);
+      color: var(--text);
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.06s ease;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(59, 130, 246, 0.85);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.6);
+      background: #020617;
+      transform: translateY(-0.5px);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      max-height: 220px;
+    }
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hint-pill {
+      padding: 1px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    button {
+      font: inherit;
+      border-radius: 999px;
+      border: none;
+      padding: 7px 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: radial-gradient(circle at top left, #60a5fa, #2563eb);
+      color: #eff6ff;
+      box-shadow:
+        0 14px 30px rgba(37, 99, 235, 0.6),
+        0 0 0 1px rgba(191, 219, 254, 0.4);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+    }
+    button:hover {
+      transform: translateY(-0.5px);
+      box-shadow:
+        0 18px 40px rgba(37, 99, 235, 0.85),
+        0 0 0 1px rgba(191, 219, 254, 0.55);
+      background: radial-gradient(circle at top left, #93c5fd, #1d4ed8);
+    }
+    button:active {
+      transform: translateY(0.5px) scale(0.99);
+      box-shadow:
+        0 10px 20px rgba(30, 64, 175, 0.8),
+        0 0 0 1px rgba(191, 219, 254, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.92);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+    .btn-secondary:hover {
+      background: rgba(15, 23, 42, 1);
+      box-shadow:
+        0 18px 35px rgba(15, 23, 42, 0.95),
+        0 0 0 1px rgba(148, 163, 184, 0.7);
+    }
+    .btn-danger {
+      background: radial-gradient(circle at top left, #fb7185, #dc2626);
+      box-shadow:
+        0 14px 30px rgba(220, 38, 38, 0.7),
+        0 0 0 1px rgba(254, 202, 202, 0.5);
+    }
+    .badge-role {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(251, 191, 36, 0.8);
+      color: #fefce8;
+      background: radial-gradient(circle at top left, rgba(251, 191, 36, 0.26), rgba(88, 28, 135, 0.75));
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-role span {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4);
+    }
+    .output-card {
+      background: radial-gradient(circle at top, #020617, #020617 40%, #0b1220 100%);
+      border-radius: var(--radius-lg);
+      padding: 14px 13px 10px;
+      border: var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .output-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 60%),
+        radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.16), transparent 55%);
+      opacity: 0.8;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .output-title {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #e5edff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .output-subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #4ade80;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4);
+    }
+    .output-body {
+      position: relative;
+      z-index: 1;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 12px;
+      padding: 10px 9px 8px;
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      box-shadow:
+        0 18px 35px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      color: #e5e7eb;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .output-body::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    .output-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .output-body::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.7);
+      border-radius: 999px;
+    }
+    .output-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+      position: relative;
+      z-index: 1;
+    }
+    .status-pill {
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill span {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #4ade80;
+    }
+    .status-pill.error span {
+      background: #fb7185;
+    }
+    .tiny {
+      font-size: 10px;
+    }
+    .muted {
+      color: #9ca3af;
+    }
+    .link {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="shell-header">
+      <div class="window-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="title">
+        <span class="title-accent">Zorvyn API Console</span>
+        <span>localhost:3000 → /api/*</span>
+      </div>
+      <div class="badge">
+        MongoDB Atlas · <span id="role-label">Role: ADMIN</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <section class="card">
+        <div class="card-inner">
+          <header class="card-header">
+            <div>
+              <div class="card-title">Record Operations</div>
+              <div class="card-subtitle">Create and inspect financial records</div>
+            </div>
+            <div class="badge-role">
+              <span></span>
+              Header `x-user-role`
+            </div>
+          </header>
+
+          <form class="form" id="record-form" onsubmit="return false;">
+            <div class="field-row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <input id="amount" type="number" step="0.01" placeholder="e.g. 2500" />
+              </div>
+              <div class="field">
+                <label for="type">Type</label>
+                <select id="type">
+                  <option value="income">income</option>
+                  <option value="expense">expense</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="category">Category</label>
+                <input id="category" placeholder="e.g. Salary, Rent, Food" />
+              </div>
+              <div class="field">
+                <label for="date">Date</label>
+                <input id="date" type="date" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="description">Description</label>
+              <textarea id="description" placeholder="Optional description for this record"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="role">Role header</label>
+              <div class="field-row">
+                <input id="role" placeholder="ADMIN, ANALYST, VIEWER" value="ADMIN" />
+                <div class="hint">
+                  <span class="hint-pill">Header: x-user-role</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button type="button" onclick="createRecord()">POST /api/records</button>
+              <button type="button" class="btn-secondary" onclick="getRecords()">GET /api/records</button>
+              <button type="button" class="btn-secondary" onclick="getSummary()">GET /api/summary</button>
+            </div>
+
+            <p class="tiny muted">
+              Tip: ADMIN can create records, ANALYST and VIEWER can only view. Change the role value to simulate each mode.
+            </p>
+          </form>
+        </div>
+      </section>
+
+      <section class="output-card">
+        <header class="output-header">
+          <div>
+            <div class="output-title">
+              <span>Live Response</span>
+              <span class="chip">
+                <span class="chip-dot"></span>
+                Fetch · JSON
+              </span>
+            </div>
+            <div class="output-subtitle">
+              Last HTTP call to your backend on <span id="last-url">—</span>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary" onclick="clearOutput()">Clear</button>
+        </header>
+
+        <div id="output" class="output-body">
+{"info":"Hit a button on the left to call your API."}
+        </div>
+
+        <footer class="output-meta">
+          <div id="status-pill" class="status-pill">
+            <span></span>
+            <span id="status-text">Idle</span>
+          </div>
+          <div class="tiny">
+            <span id="timing">— ms</span>
+            ·
+            <a class="link" href="javascript:void(0)" onclick="copyLastRequest()">Copy last request</a>
+          </div>
+        </footer>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const outputEl = document.getElementById('output');
+    const statusPill = document.getElementById('status-pill');
+    const statusText = document.getElementById('status-text');
+    const timingEl = document.getElementById('timing');
+    const lastUrlEl = document.getElementById('last-url');
+    const roleInput = document.getElementById('role');
+    const roleLabel = document.getElementById('role-label');
+
+    let lastRequest = null;
+
+    function setStatus(state, meta = {}) {
+      const { code, time } = meta;
+      if (state === 'idle') {
+        statusPill.classList.remove('error');
+        statusText.textContent = 'Idle';
+        timingEl.textContent = '— ms';
+        return;
+      }
+      if (state === 'loading') {
+        statusPill.classList.remove('error');
+        statusText.textContent = 'Sending...';
+        timingEl.textContent = '— ms';
+        return;
+      }
+      if (state === 'success') {
+        statusPill.classList.remove('error');
+        statusText.textContent = `OK · ${code ?? 200}`;
+        if (time != null) timingEl.textContent = `${time} ms`;
+        return;
+      }
+      if (state === 'error') {
+        statusPill.classList.add('error');
+        statusText.textContent = `Error · ${code ?? '—'}`;
+        if (time != null) timingEl.textContent = `${time} ms`;
+      }
+    }
+
+    function setOutput(data, isError) {
+      const prefix = isError ? '// Error\\n' : '';
+      const json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      outputEl.textContent = prefix + json;
+    }
+
+    function getBaseHeaders() {
+      const role = roleInput.value.trim() || 'ADMIN';
+      roleLabel.textContent = `Role: ${role}`;
+      return {
+        'Content-Type': 'application/json',
+        'x-user-role': role,
+      };
+    }
+
+    async function callApi(method, path, body) {
+      const url = path.startsWith('http') ? path : `${window.location.origin}${path}`;
+      lastUrlEl.textContent = url.replace(window.location.origin, '');
+
+      const headers = getBaseHeaders();
+      const options = {
+        method,
+        headers,
+      };
+      if (body && method !== 'GET') {
+        options.body = JSON.stringify(body);
+      }
+
+      lastRequest = { url, method, headers, body };
+
+      const start = performance.now();
+      setStatus('loading');
+
+      try {
+        const res = await fetch(url, options);
+        const elapsed = Math.round(performance.now() - start);
+
+        let data;
+        const contentType = res.headers.get('content-type') || '';
+
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          data = await res.text();
+        }
+
+        const ok = res.ok;
+        setOutput({ status: res.status, ok, data }, !ok);
+        setStatus(ok ? 'success' : 'error', { code: res.status, time: elapsed });
+      } catch (err) {
+        const elapsed = Math.round(performance.now() - start);
+        setOutput(String(err?.message || err), true);
+        setStatus('error', { code: 'network', time: elapsed });
+      }
+    }
+
+    function createRecord() {
+      const amount = parseFloat(document.getElementById('amount').value || '0');
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category').value || undefined;
+      const date = document.getElementById('date').value || undefined;
+      const description = document.getElementById('description').value || undefined;
+
+      if (!amount || !type) {
+        setOutput({ error: 'Amount and type are required for POST /api/records' }, true);
+        setStatus('error', { code: 400, time: 0 });
+        return;
+      }
+
+      const payload = { amount, type, category, date, description };
+      callApi('POST', '/api/records', payload);
+    }
+
+    function getRecords() {
+      callApi('GET', '/api/records');
+    }
+
+    function getSummary() {
+      callApi('GET', '/api/summary');
+    }
+
+    function clearOutput() {
+      outputEl.textContent = '{"info":"Output cleared. Call an endpoint again."}';
+      setStatus('idle');
+    }
+
+    async function copyLastRequest() {
+      if (!lastRequest) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(lastRequest, null, 2));
+        setOutput({ info: 'Last request JSON copied to clipboard.', lastRequest }, false);
+      } catch (err) {
+        setOutput({ error: 'Unable to copy to clipboard.', detail: String(err) }, true);
+      }
+    }
+  </script>
+</body>
+</html>
