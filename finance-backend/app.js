@@ -1,6 +1,8 @@
 // app.js
+require('dotenv').config();
 const express = require('express');
 const financeRoutes = require('./src/routes/financeRoutes');
+const { connectDB } = require('./src/config/database');
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,14 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Finance Backend running on port ${PORT}`);
-});
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Finance Backend running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB', err);
+    process.exit(1);
+  });

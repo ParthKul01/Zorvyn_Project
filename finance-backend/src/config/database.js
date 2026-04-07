@@ -1,27 +1,50 @@
 // src/config/database.js
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(':memory:'); // Using memory for easy testing, use a filename for persistence
+const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
-db.serialize(() => {
-  // Roles: ADMIN, ANALYST, VIEWER
-  db.run(`CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    role TEXT,
-    status TEXT DEFAULT 'active'
-  )`);
+const uri = process.env.MONGO_URL;
 
-  db.run(`CREATE TABLE records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    amount REAL,
-    type TEXT, -- 'income' or 'expense'
-    category TEXT,
-    date TEXT,
-    description TEXT
-  )`);
+if (!uri) {
+  throw new Error('MONGO_URL is not defined in the environment');
+}
 
-  // Seed default Admin
-  db.run(`INSERT INTO users (username, role) VALUES ('admin_user', 'ADMIN')`);
-});
+let client;
+let db;
 
-module.exports = db;
+const DB_NAME = 'zorvyn_finance';
+
+async function connectDB() {
+  if (db) {
+    return db;
+  }
+
+  client = new MongoClient(uri);
+  await client.connect();
+
+  db = client.db(DB_NAME);
+
+  const usersCollection = db.collection('users');
+  const recordsCollection = db.collection('records');
+
+  const existingAdmin = await usersCollection.findOne({ username: 'admin_user' });
+  if (!existingAdmin) {
+    await usersCollection.insertOne({
+      username: 'admin_user',
+      role: 'ADMIN',
+      status: 'active',
+    });
+  }
+
+  await recordsCollection.createIndex({ date: 1 });
+
+  return db;
+}
+
+function getDB() {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectDB() first.');
+  }
+  return db;
+}
+
+module.exports = { connectDB, getDB };
